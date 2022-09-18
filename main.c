@@ -1,19 +1,10 @@
 #include <stdio.h>
-// #include <assert.h>
 #include <ctype.h>
-// #include <errno.h>
-// #include <float.h>
-// #include <limits.h>
-// #include <locale.h>
-// #include <math.h>
-// #include <setjmp.h>
-// #include <signal.h>
-// #include <stdarg.h>
-// #include <stddef.h>
-// #include <stdlib.h>
-// #include <string.h>
-// #include <time.h>
+#include <stdlib.h>
+#include <string.h>
 #define putd(x) printf(#x ": %d\n", x)
+
+#include "queue.h"
 
 // cube {{{1
 typedef struct
@@ -45,10 +36,12 @@ void cwturn(Face *f)
   r[6] = r[4];
   r[4] = r[2];
   r[2] = tmp;
+  tmp = r[1];
   r[1] = r[7];
   r[7] = r[5];
   r[5] = r[3];
   r[3] = tmp;
+
 
   char pmet[3];
   char *temp[3] = {pmet+0, pmet+1, pmet+2};
@@ -62,18 +55,52 @@ void cwturn(Face *f)
   triplecpy(a[1], temp);
 }
 
-// void ccwturn(Face *f)
-// {
-  
-// }
+void ccwturn(Face *f)
+{
+  char *r = f->ring;
+  char tmp = r[0];
+  r[0] = r[2];
+  r[2] = r[4];
+  r[4] = r[6];
+  r[6] = tmp;
+  tmp = r[1];
+  r[1] = r[3];
+  r[3] = r[5];
+  r[5] = r[7];
+  r[7] = tmp;
+  char pmet[3];
+  char *temp[3] = {pmet+0, pmet+1, pmet+2};
 
-// void doalg(char *alg)
-// {
-//   while(alg)
-//   {
-//     if(*alg == 'u')
-//   }
-// }
+  char *(*a)[3] = f->adj;
+  
+  triplecpy(temp, a[0]);
+  triplecpy(a[0], a[1]);
+  triplecpy(a[1], a[2]);
+  triplecpy(a[2], a[3]);
+  triplecpy(a[3], temp);
+}
+
+void doalg(char *alg)
+{
+  while(*alg)
+  {
+    if(*alg == 'u') ccwturn(&U);
+    if(*alg == 'd') ccwturn(&D);
+    if(*alg == 'f') ccwturn(&F);
+    if(*alg == 'b') ccwturn(&B);
+    if(*alg == 'r') ccwturn(&R);
+    if(*alg == 'l') ccwturn(&L);
+    
+    if(*alg == 'U') cwturn(&U);
+    if(*alg == 'D') cwturn(&D);
+    if(*alg == 'F') cwturn(&F);
+    if(*alg == 'B') cwturn(&B);
+    if(*alg == 'R') cwturn(&R);
+    if(*alg == 'L') cwturn(&L);
+
+    alg++;
+  }
+}
 
 // cube IO {{{1
 #define bufy 11
@@ -142,7 +169,9 @@ void printcube()
 
 // main {{{1
 
-int main()
+#define BUFMAX 1000
+
+int main(int argc, char **argv)
 {
   U.adj = (char *[4][3]) {{B.ring+0,B.ring+1,B.ring+2}, {R.ring+0,R.ring+1,R.ring+2}, {F.ring+0,F.ring+1,F.ring+2}, {L.ring+0,L.ring+1,L.ring+2}};
   D.adj = (char *[4][3]) {{F.ring+4,F.ring+5,F.ring+6}, {R.ring+4,R.ring+5,R.ring+6}, {B.ring+4,B.ring+5,B.ring+6}, {L.ring+4,L.ring+5,L.ring+6}};
@@ -151,9 +180,13 @@ int main()
   R.adj = (char *[4][3]) {{U.ring+2,U.ring+3,U.ring+4}, {B.ring+6,B.ring+7,B.ring+0}, {D.ring+2,D.ring+3,D.ring+4}, {F.ring+2,F.ring+3,F.ring+4}};
   L.adj = (char *[4][3]) {{U.ring+6,U.ring+7,U.ring+0}, {F.ring+6,F.ring+7,F.ring+0}, {D.ring+6,D.ring+7,D.ring+0}, {B.ring+2,B.ring+3,B.ring+4}};
 
-  printcube();
-  cwturn(&D);
-  cwturn(&D);
-  cwturn(&D);
-  printcube();
+  char buf[BUFMAX];
+  while(1)
+  {
+    printcube();
+    if(fgets(buf, BUFMAX, stdin) == 0) exit(0);
+    
+    doalg(buf);
+  }
+  
 }
