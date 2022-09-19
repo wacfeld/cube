@@ -245,55 +245,68 @@ char moveface(char move)
   return 0;
 }
 
-char *dfs(cube *cb, int (*goal)(cube *cb), int maxdepth)
+void dfs(cube *cb, int (*goal)(cube *cb), int maxdepth)
 {
-  int dfshelp(cube *cb, int (*goal)(cube *cb), int maxdepth, char prev, char *ans);
+  void dfshelp(cube *cb, int (*goal)(cube *cb), int maxdepth, char prev, char *ans, int ai, int *record);
   
   char *ans = malloc(maxdepth+1);
   
-  if(dfshelp(cb, goal, maxdepth, 0, ans))
-  {
-    return ans;
-  }
+  int record = maxdepth+1;
+  dfshelp(cb, goal, maxdepth, 0, ans, 0, &record);
+  // if(dfshelp(cb, goal, maxdepth, 0, ans))
+  // {
+  //   return ans;
+  // }
 
-  else
-  {
-    free(ans);
-    return NULL;
-  }
+  // else
+  // {
+  //   free(ans);
+  //   return NULL;
+  // }
+  free(ans);
 }
 
-int dfshelp(cube *cb, int (*goal)(cube *cb), int maxdepth, char prev, char *ans)
+void dfshelp(cube *cb, int (*goal)(cube *cb), int maxdepth, char prev, char *ans, int ai, int *record)
 {
   static char moves[] = "udfbrlUDFBRL012345";
   static char faces[] = "udfbrludfbrludfbrl";
 
   if(goal(cb))
   {
-    *ans = 0;
-    return 1;
+    ans[ai] = 0;
+    if(ai < *record)
+    {
+      puts(ans);
+      *record = ai;
+    }
+    return;
+    // return 1;
   }
 
   if(maxdepth <= 0)
-    return 0;
+    // return 0;
+    return;
   
   char prevface = moveface(prev);
   for(int i = 0; moves[i]; i++)
   {
     if(faces[i] == prevface) continue;
 
-    doqt(cb, faces[i]);
-    int res = dfshelp(cb, goal, maxdepth-1, faces[i], ans+1);
-    undoqt(cb, faces[i]);
+    ans[ai] = moves[i];
+    doqt(cb, moves[i]);
+    // int res = dfshelp(cb, goal, maxdepth-1, moves[i], ans+1);
+    dfshelp(cb, goal, maxdepth-1, moves[i], ans, ai+1, record);
+    undoqt(cb, moves[i]);
 
-    if(res)
-    {
-      *ans = faces[i];
-      return 1;
-    }
+    // if(res)
+    // {
+    //   *ans = moves[i];
+    //   return 1;
+    // }
   }
 
-  return 0;
+  // return 0;
+  return;
 }
 
 // main {{{1
@@ -321,18 +334,22 @@ int main(int argc, char **argv)
 
   char buf[BUFMAX];
 
+  printcube(cb);
   fgets(buf, BUFMAX, stdin);
   doalg(cb, buf);
+  printcube(cb);
+
   
-  char *ans = dfs(cb, dcross, 8);
-  if(ans)
-  {
-    puts(ans);
-  }
-  else
-  {
-    puts("could not find solution");
-  }
+  // char *ans = dfs(cb, dcross, 8);
+  dfs(cb, dcross, 8);
+  // if(ans)
+  // {
+  //   puts(ans);
+  // }
+  // else
+  // {
+  //   puts("could not find solution");
+  // }
 
   
   // while(1)
